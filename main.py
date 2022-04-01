@@ -1,28 +1,33 @@
 import requests
+import time
 from bs4 import BeautifulSoup
 
 
-link = "https://www.discudemy.com/all"
-response = BeautifulSoup(requests.get(link).text, "html.parser")
+# List of webpages to scan for coupons
+links = [f'https://www.discudemy.com/all/{i}' for i in range(1, 6)]
+coupons = {}  # Dictionary of course names and their coupon codes
 
-# List of the links on the cards on the site
-aTags = response.find_all("a", class_="card-header")
-hrefs = [aTag.get("href") for aTag in aTags]  # hrefs of the aTags
+fileName = "coupons " + time.asctime().strip() + ".txt"
 
-discButtons = []  # List of the href links of the buttons on the site that take you to the actual coupon code
-coupons = {}  # Dictionary of the course names and their coupon codes
+with open(fileName, "w+") as f:
+    for link in links:
+        response = BeautifulSoup(requests.get(link).text, "html.parser")
+        aTags = response.find_all("a", class_="card-header")
+        hrefs = [aTag.get("href") for aTag in aTags]  # hrefs of the aTags
 
-for href in hrefs:
-    link = href
-    hrefResponse = BeautifulSoup(requests.get(link).text, "html.parser")
-    discButtons.append(hrefResponse.find("a", class_="discBtn").get("href"))
+        for href in hrefs:
+            hrefResponse = BeautifulSoup(
+                requests.get(href).text, "html.parser")
+            # List of the href links of the buttons on the site that take you to the actual coupon code
+            discButtons = hrefResponse.find_all("a", class_="discBtn")
 
-for discButton in discButtons:
-    link = discButton
-    discButtonResponse = BeautifulSoup(requests.get(link).text, "html.parser")
-    coupons[discButtonResponse.find(
-        "h1", class_="ui grey header").text] = discButtonResponse.find("a", id="couponLink").text
+            for discButton in discButtons:
+                discButtonResponse = BeautifulSoup(requests.get(
+                    discButton.get("href")).text, "html.parser")
+                coupons[discButtonResponse.find(
+                    "h1", class_="ui grey header").text] = discButtonResponse.find("a", id="couponLink").text
 
-with open("coupons.txt", "w") as f:
-    for courseName, couponLink in coupons.items():
-        f.write(courseName + ": " + couponLink + "\n")
+                f.write(
+                    discButtonResponse.find("h1", class_="ui grey header").text +
+                    ": " + discButtonResponse.find("a", id="couponLink").text + "\n")
+                f.flush()  # Writes the link continuously to the file

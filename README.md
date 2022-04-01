@@ -31,7 +31,7 @@ Just run the `main.py` file by
 python3 main.py
 ```
 
-It will create a new file `coupons.txt` in the same directory as `main.py`. It will contain the course names and the coupons in the format
+It will create a new file `{current date and time}.txt` in the same directory as `main.py`. It will contain the course names and the coupons in the format
 
 ```txt
 {courseName}: {couponLink}
